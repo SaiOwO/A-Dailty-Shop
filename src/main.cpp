@@ -17,6 +17,8 @@ enum ItemType {
     Jetpack = 8,
     DeathEffect = 98,
     Special = 99,
+    Color1 = 100,
+    Color2 = 101
 };
 
 int getMaxIconForType(ItemType type) {
@@ -32,6 +34,8 @@ int getMaxIconForType(ItemType type) {
         case Jetpack: return 5;
         case DeathEffect: return 20;
         case Special: return 7;
+        case Color1: return 107;
+        case Color2: return 107;
         default: return 1;
     }
 }
@@ -49,6 +53,8 @@ CCDictionary* m_swingsRarity;
 CCDictionary* m_jetpacksRarity;
 CCDictionary* m_specialsRarity;
 CCDictionary* m_effectsRarity;
+CCDictionary* m_color1Rarity;
+CCDictionary* m_color2Rarity;
 
 int getRarity(int id, ItemType type) {
     switch (type) {
@@ -63,6 +69,8 @@ int getRarity(int id, ItemType type) {
         case Jetpack: if (auto r = dynamic_cast<CCString*>(m_jetpacksRarity->objectForKey(id))) return std::atoi(r->getCString());
         case Special: if (auto r = dynamic_cast<CCString*>(m_specialsRarity->objectForKey(id))) return std::atoi(r->getCString());
         case DeathEffect: if (auto r = dynamic_cast<CCString*>(m_effectsRarity->objectForKey(id))) return std::atoi(r->getCString());
+        case Color1: if (auto r = dynamic_cast<CCString*>(m_color1Rarity->objectForKey(id))) return std::atoi(r->getCString());
+        case Color2: if (auto r = dynamic_cast<CCString*>(m_color2Rarity->objectForKey(id))) return std::atoi(r->getCString());
         default: return 0;
     }
 }
@@ -102,6 +110,10 @@ void defineIconsRarity() {
         m_specialsRarity->retain();
         m_effectsRarity = CCDictionary::create();
         m_effectsRarity->retain();
+        m_color1Rarity = CCDictionary::create();
+        m_color1Rarity->retain();
+        m_color2Rarity = CCDictionary::create();
+        m_color2Rarity->retain();
 
         auto s = GameStatsManager::sharedState();
 
@@ -110,81 +122,79 @@ void defineIconsRarity() {
             else if (i > 142) m_cubesRarity->setObject(CCString::create("2"), i);
             else m_cubesRarity->setObject(CCString::create("1"), i);
 
-            int iconID = 2000 + i;
-            s->addStoreItem(iconID, 9999, 1, priceFromRarity(getRarity(i, Cube)), (ShopType)10);
+            s->addStoreItem(2000 + i, 9999, 1, priceFromRarity(getRarity(i, Cube)), (ShopType)10);
         }
         for (int i = 2; i <= getMaxIconForType(Ship); i++) {
             if (i > 1 && i <= 21) m_shipsRarity->setObject(CCString::create("0"), i);
             else if (i > 51) m_shipsRarity->setObject(CCString::create("2"), i);
             else m_shipsRarity->setObject(CCString::create("1"), i);
 
-            int iconID = 4000 + i;
-            s->addStoreItem(iconID, 9999, 1, priceFromRarity(getRarity(i, Ship)), (ShopType)10);
+            s->addStoreItem(4000 + i, 9999, 1, priceFromRarity(getRarity(i, Ship)), (ShopType)10);
         }
         for (int i = 2; i <= getMaxIconForType(Ball); i++) {
             if (i > 1 && i <= 22) m_ballsRarity->setObject(CCString::create("0"), i);
             else if (i > 43) m_ballsRarity->setObject(CCString::create("2"), i);
             else m_ballsRarity->setObject(CCString::create("1"), i);
 
-            int iconID = 6000 + i;
-            s->addStoreItem(iconID, 9999, 1, priceFromRarity(getRarity(i, Ball)), (ShopType)10);
+            s->addStoreItem(6000 + i, 9999, 1, priceFromRarity(getRarity(i, Ball)), (ShopType)10);
         }
         for (int i = 2; i <= getMaxIconForType(Ufo); i++) {
             if (i > 1 && i <= 20) m_ufosRarity->setObject(CCString::create("0"), i);
             else if (i > 35) m_ufosRarity->setObject(CCString::create("2"), i);
             else m_ufosRarity->setObject(CCString::create("1"), i);
 
-            int iconID = 8000 + i;
-            s->addStoreItem(iconID, 9999, 1, priceFromRarity(getRarity(i, Ufo)), (ShopType)10);
+            s->addStoreItem(8000 + i, 9999, 1, priceFromRarity(getRarity(i, Ufo)), (ShopType)10);
         }
         for (int i = 2; i <= getMaxIconForType(Wave); i++) {
             if (i > 1 && i <= 23) m_wavesRarity->setObject(CCString::create("0"), i);
             else if (i > 35) m_wavesRarity->setObject(CCString::create("2"), i);
             else m_wavesRarity->setObject(CCString::create("1"), i);
 
-            int iconID = 10000 + i;
-            s->addStoreItem(iconID, 9999, 1, priceFromRarity(getRarity(i, Wave)), (ShopType)10);
+            s->addStoreItem(10000 + i, 9999, 1, priceFromRarity(getRarity(i, Wave)), (ShopType)10);
         }
         for (int i = 2; i <= getMaxIconForType(Robot); i++) {
             if (i > 1 && i <= 6) m_robotsRarity->setObject(CCString::create("0"), i);
             else if (i > 26) m_robotsRarity->setObject(CCString::create("2"), i);
             else m_robotsRarity->setObject(CCString::create("1"), i);
 
-            int iconID = 12000 + i;
-            s->addStoreItem(iconID, 9999, 1, priceFromRarity(getRarity(i, Robot)), (ShopType)10);
+            s->addStoreItem(12000 + i, 9999, 1, priceFromRarity(getRarity(i, Robot)), (ShopType)10);
         }
         for (int i = 2; i <= getMaxIconForType(Spider); i++) {
             if (i > 1 && i <= 4) m_spidersRarity->setObject(CCString::create("0"), i);
             else if (i > 17) m_spidersRarity->setObject(CCString::create("2"), i);
             else m_spidersRarity->setObject(CCString::create("1"), i);
 
-            int iconID = 14000 + i;
-            s->addStoreItem(iconID, 9999, 1, priceFromRarity(getRarity(i, Spider)), (ShopType)10);
+            s->addStoreItem(14000 + i, 9999, 1, priceFromRarity(getRarity(i, Spider)), (ShopType)10);
         }
         for (int i = 2; i <= getMaxIconForType(Swing); i++) {
             m_swingsRarity->setObject(CCString::create("2"), i);
 
-            int iconID = 16000 + i;
-            s->addStoreItem(iconID, 9999, 1, priceFromRarity(getRarity(i, Swing)), (ShopType)10);
+            s->addStoreItem(16000 + i, 9999, 1, priceFromRarity(getRarity(i, Swing)), (ShopType)10);
         }
         for (int i = 2; i <= getMaxIconForType(Jetpack); i++) {
             m_jetpacksRarity->setObject(CCString::create("1"), i);
 
-            int iconID = 18000 + i;
-            s->addStoreItem(iconID, 9999, 1, priceFromRarity(getRarity(i, Jetpack)), (ShopType)10);
+            s->addStoreItem(18000 + i, 9999, 1, priceFromRarity(getRarity(i, Jetpack)), (ShopType)10);
         }
         for (int i = 2; i <= getMaxIconForType(Special); i++) {
             if (i == 2) m_specialsRarity->setObject(CCString::create("3"), i);
+            else if (i == 5 || i == 6) m_specialsRarity->setObject(CCString::create("1"), i);
             else m_specialsRarity->setObject(CCString::create("0"), i);
 
-            int iconID = 198000 + i;
-            s->addStoreItem(iconID, 9999, 1, priceFromRarity(getRarity(i, Special)), (ShopType)10);
+            s->addStoreItem(198000 + i, 9999, 1, priceFromRarity(getRarity(i, Special)), (ShopType)10);
         }
         for (int i = 2; i <= getMaxIconForType(DeathEffect); i++) {
-            m_effectsRarity->setObject(CCString::create("0"), i);
+            m_effectsRarity->setObject(CCString::create("1"), i);
 
-            int iconID = 196000 + i;
-            s->addStoreItem(iconID, 9999, 1, priceFromRarity(getRarity(i, DeathEffect)), (ShopType)10);
+            s->addStoreItem(196000 + i, 9999, 1, priceFromRarity(getRarity(i, DeathEffect)), (ShopType)10);
+        }
+        for (int i = 0; i <= getMaxIconForType(Color1); i++) {
+            m_color1Rarity->setObject(CCString::create("0"), i);
+            m_color2Rarity->setObject(CCString::create("0"), i);
+
+            // same value for color
+            s->addStoreItem(200000 + i, 9999, 1, priceFromRarity(getRarity(i, Color1)), (ShopType)10);
+            s->addStoreItem(202000 + i, 9999, 1, priceFromRarity(getRarity(i, Color2)), (ShopType)10);
         }
 
         oneTime = false;
@@ -235,6 +245,16 @@ CCNode* nodeFromItemType(ItemType tipo, int id) {
                 return spr;
             else
                 return CCSprite::createWithSpriteFrameName("GJ_newBtn_001.png");
+        case Color1:
+        case Color2:
+            auto bg = CCSprite::createWithSpriteFrameName("player_special_01_001.png");
+            bg->setColor(GameManager::sharedState()->colorForIdx(id));
+            auto _id = CCLabelBMFont::create(CCString::createWithFormat("%i", tipo - 99)->getCString(), "bigFont.fnt");
+            _id->setPosition(bg->getContentSize() / 2);
+            _id->setScale(.5f);
+            _id->setColor(bg->getColor());
+            bg->addChild(_id);
+            return bg;
     }
     auto icon = SimplePlayer::create(id);
     icon->updatePlayerFrame(id, (IconType)tipo);
@@ -260,6 +280,8 @@ const char* getNameFromItemType(ItemType tipo) {
         case Jetpack: return "Jetpack";
         case DeathEffect: return "Death Effect";
         case Special: return "Special";
+        case Color1: return "Main Color";
+        case Color2: return "Second Color";
         default: return "?";
     }
 }
@@ -361,6 +383,9 @@ class ConfirmarCompra : public FLAlertLayer {
     ItemType itemTipo;
     int itemID = 0;
     int price;
+    CCNode* m_item;
+    CCMenu* menu;
+    CCMenu* menu3;
 public:
     bool init() {
         if (!FLAlertLayer::init(150)) return false;
@@ -377,9 +402,20 @@ public:
         bg->setPosition({ size.width / 2, size.height / 2 });
         m_mainLayer->addChild(bg, -1);
 
-        auto titulo = CCLabelBMFont::create("Confirm purchase", "bigFont.fnt");
+        itemTipo = (ItemType)info->stringAtIndex(4)->intValue();
+        itemID = info->stringAtIndex(1)->intValue();
+
+        bool comprado = false;
+        if (itemTipo > 99) {
+            comprado = GameManager::sharedState()->isColorUnlocked(itemID, (UnlockType)(itemTipo - 98));
+        }
+        else {
+            comprado = GameManager::sharedState()->isIconUnlocked(itemID, (IconType)itemTipo);
+        }
+
+        auto titulo = CCLabelBMFont::create(comprado ? "Item" : "Confirm purchase", "bigFont.fnt");
         titulo->limitLabelWidth(200, 0.7f, 0);
-        titulo->setPosition({ bg->getPositionX(), bg->getPositionY() + bg->getContentSize().height / 2 - 20 });
+        titulo->setPosition({ bg->getPositionX(), bg->getPositionY() + bg->getContentSize().height / 2 - 18 });
         m_mainLayer->addChild(titulo);
 
         auto bgI = extension::CCScale9Sprite::create("DS_itemBG.png"_spr);
@@ -393,59 +429,229 @@ public:
         itemName->setPosition({ bg->getPositionX(), bg->getPositionY() + 27 });
         m_mainLayer->addChild(itemName);
 
-        itemTipo = (ItemType)info->stringAtIndex(4)->intValue();
-        itemID = info->stringAtIndex(1)->intValue();
+        menu = CCMenu::create();
 
-        auto item = nodeFromItemType(itemTipo, itemID);
-        item->setScale(1.4f);
-        item->setPosition({ bgI->getPositionX(), bgI->getPositionY() - 10 });
-        m_mainLayer->addChild(item);
+        if (itemTipo == Robot || itemTipo == Spider) {
+            float m_posY = 0, m_posX = 0;
+            for (int i = 0; i < 6; i++) {
+                auto button = CCMenuItemToggler::create(this->getSprite(i, false), this->getSprite(i, true), this, menu_selector(ConfirmarCompra::onToggle));
+                button->setTag(i);
+                button->setPosition({ -10 + m_posX, 0 - m_posY });
+                button->setClickable(false);
+                if (i == 0) button->toggle(true);
+
+                m_posX += 30;
+                if ((i + 1) % 2 == 0) {
+                    m_posY += 30;
+                    m_posX = 0;
+                }
+
+                menu->addChild(button);
+            }
+        }
+
+        menu->setPosition({ menu->getPositionX() - bg->getContentSize().width / 2 + 32, menu->getPositionY() + 22 });
+        menu->setTouchPriority(-504);
+        m_mainLayer->addChild(menu);
+
+        m_item = nodeFromItemType(itemTipo, itemID);
+        m_item->setScale(1.4f);
+        m_item->setPosition({ bgI->getPositionX(), bgI->getPositionY() - 10 });
+        m_mainLayer->addChild(m_item);
         
         auto shadow = CCSprite::createWithSpriteFrameName("chest_shadow_001.png");
-        shadow->setPosition({ item->getPositionX(), item->getPositionY() - 20 });
+        shadow->setPosition({ m_item->getPositionX(), m_item->getPositionY() - 20 });
         shadow->setScale(.575f);
         shadow->setOpacity(90);
         m_mainLayer->addChild(shadow, -1);
-        
-        auto orbs = CCSprite::createWithSpriteFrameName("currencyOrbIcon_001.png");
-        orbs->setScale(.8f);
-        orbs->setPosition({ bgI->getPositionX() - bgI->getContentSize().width / 2 + 15 , bgI->getPositionY() - bgI->getContentSize().height / 2 + 15 });
-        m_mainLayer->addChild(orbs);
 
         price = info->stringAtIndex(3)->intValue();
-        auto precio = CCLabelBMFont::create(CCString::createWithFormat("%i", price)->getCString(), "bigFont.fnt");
-        precio->setAnchorPoint({ 0, 0.5f });
-        precio->limitLabelWidth(100, .4f, 0);
-        precio->setPosition({ orbs->getPositionX() + 12, orbs->getPositionY() + 1 });
-        m_mainLayer->addChild(precio);
 
-        auto desc = TextArea::create(CCString::createWithFormat("Are you sure you want to buy this <cg>%s</c> for <cy>%s</c> <cl>mana orbs</c>?\n<cr>(This action is unreversible)</c>", getNameFromItemType(itemTipo), precio->getString())->getCString(), "chatFont.fnt",  1, 300, { 0.5f, 0.5f }, 20, false);
-        desc->setPosition({ bg->getPositionX(), bg->getPositionY() + 65 });
-        desc->setScale(.7f);
-        m_mainLayer->addChild(desc);
+        if (comprado) {
+            auto desc = TextArea::create(CCString::createWithFormat("This <cg>%s</c> is priced at <cy>%i</c> <cl>mana orbs</c>\n<co>(Owned)</c>", getNameFromItemType(itemTipo), price)->getCString(), "chatFont.fnt",  1, 300, { 0.5f, 0.5f }, 20, false);
+            desc->setPosition({ bg->getPositionX(), bg->getPositionY() + 66 });
+            desc->setScale(.8f);
+            m_mainLayer->addChild(desc);
+        }
+        else {
+            auto orbs = CCSprite::createWithSpriteFrameName("currencyOrbIcon_001.png");
+            orbs->setScale(.8f);
+            orbs->setPosition({ bgI->getPositionX() - bgI->getContentSize().width / 2 + 15 , bgI->getPositionY() - bgI->getContentSize().height / 2 + 15 });
+            m_mainLayer->addChild(orbs);
 
-        auto menu3 = CCMenu::create();
+            /*
+            auto particle = CCParticleSystemQuad::create("keyEffect.plist", false);
+            particle->setScale(.55f);
+            particle->setPosition(orbs->getPosition());
+            m_mainLayer->addChild(particle, -1);*/
 
-        auto cancel = ButtonSprite::create("Cancel", 70, false, "goldFont.fnt", "GJ_button_06.png", 0.0f, 1);
-        auto cancelBtn = CCMenuItemSpriteExtra::create(cancel, this, menu_selector(ConfirmarCompra::onClose));
-        menu3->addChild(cancelBtn);
+            auto precio = CCLabelBMFont::create(CCString::createWithFormat("%i", price)->getCString(), "bigFont.fnt");
+            precio->setAnchorPoint({ 0, 0.5f });
+            precio->limitLabelWidth(100, .4f, 0);
+            precio->setPosition({ orbs->getPositionX() + 12, orbs->getPositionY() + 1 });
+            m_mainLayer->addChild(precio);
 
-        auto submit = ButtonSprite::create("Buy!", 70, false, "goldFont.fnt", "GJ_button_01.png", 0.0f, 1);
-        auto submitBtn = CCMenuItemSpriteExtra::create(submit, this, menu_selector(ConfirmarCompra::onBuy));
-        menu3->addChild(submitBtn);
+            auto desc = TextArea::create(CCString::createWithFormat("Are you sure you want to buy this <cg>%s</c> for <cy>%i</c> <cl>mana orbs</c>?\n<cr>(This action is unreversible)</c>", getNameFromItemType(itemTipo), price)->getCString(), "chatFont.fnt",  1, 300, { 0.5f, 0.5f }, 20, false);
+            desc->setPosition({ bg->getPositionX(), bg->getPositionY() + 66 });
+            desc->setScale(.7f);
+            m_mainLayer->addChild(desc);
+        }
 
+        menu3 = CCMenu::create();
+
+        if (comprado) {
+            auto okBtn = CCMenuItemSpriteExtra::create(ButtonSprite::create("OK", 70, false, "goldFont.fnt", "GJ_button_01.png", 0.0f, 1), this, menu_selector(ConfirmarCompra::onClose));
+            menu3->addChild(okBtn);
+        }
+        else {
+            auto cancelBtn = CCMenuItemSpriteExtra::create(ButtonSprite::create("Cancel", 70, false, "goldFont.fnt", "GJ_button_06.png", 0.0f, 1), this, menu_selector(ConfirmarCompra::onClose));
+            menu3->addChild(cancelBtn);
+
+            auto submitBtn = CCMenuItemSpriteExtra::create(ButtonSprite::create("Buy!", 70, false, "goldFont.fnt", "GJ_button_01.png", 0.0f, 1), this, menu_selector(ConfirmarCompra::onBuy));
+            menu3->addChild(submitBtn);
+        }
         menu3->setPosition({ bg->getPositionX(), bg->getPositionY() - bg->getContentSize().height / 2 + 25 });
         menu3->alignItemsHorizontallyWithPadding(15);
         menu3->setTouchPriority(-504);
-        m_mainLayer->addChild(menu3, 10);
 
+        m_mainLayer->addChild(menu3);
         this->addChild(m_mainLayer);
         return true;
+    }
+    CCSprite* getSprite(int id, bool activated) {
+        CCSprite* spr;
+        if (itemTipo == Spider) {
+            switch (id) {
+                case 1:
+                    spr = CCSprite::create("DS_spider_walk.png"_spr);
+                    break;
+                case 2:
+                    spr = CCSprite::create("DS_spider_run.png"_spr);
+                    break;
+                case 3:
+                    spr = CCSprite::createWithSpriteFrameName("gjItem_20_001.png");
+                    break;
+                case 4:
+                    spr = CCSprite::create("DS_spider_jump.png"_spr);
+                    break;
+                case 5:
+                    spr = CCSprite::create("DS_spider_fall.png"_spr);
+                    break;
+                default:
+                    spr = CCSprite::create("DS_spider_idle.png"_spr);
+                    break;
+            }
+        }
+        else {
+            switch (id) {
+                case 1:
+                    spr = CCSprite::create("DS_robot_run.png"_spr);
+                    break;
+                case 2:
+                    spr = CCSprite::create("DS_robot_run2.png"_spr);
+                    break;
+                case 3:
+                    spr = CCSprite::create("DS_robot_run3.png"_spr);
+                    break;
+                case 4:
+                    spr = CCSprite::create("DS_robot_jump.png"_spr);
+                    break;
+                case 5:
+                    spr = CCSprite::create("DS_robot_fall.png"_spr);
+                    break;
+                default:
+                    spr = CCSprite::create("DS_robot_idle.png"_spr);
+                    break;
+            }
+        }
+
+        spr->setScale(.9f);
+        if (!activated) spr->setColor({125,125,125});
+        return spr;
+    }
+    void onToggle(CCObject* s) {
+        auto btn = reinterpret_cast<CCMenuItemToggler*>(s);
+        int tag = btn->getTag();
+
+        for (int i = 0; i < menu->getChildrenCount(); i++) {
+            reinterpret_cast<CCMenuItemToggler*>(menu->getChildren()->objectAtIndex(i))->toggle(false);
+        }
+
+        btn->toggle(true);
+        auto p = reinterpret_cast<SimplePlayer*>(m_item);
+
+        this->stopAllActions();
+
+        if (itemTipo == Spider) {
+            const char* anim = "idle01";
+            switch (tag) { 
+            case 1:
+                anim = "walk";
+                break;
+            case 2:
+                anim = "run";
+                break;
+            case 3:
+                anim = "run2";
+                break;
+            case 4:
+                anim = "jump";
+                break;
+            case 5:
+                anim = "fall_loop";
+                break;
+            }
+            
+            p->m_spiderSprite->runAnimation(anim);
+        }
+        else {
+            const char* anim = "idle01";
+            switch (tag) { 
+            case 1:
+                anim = "run";
+                break;
+            case 2:
+                anim = "run2";
+                break;
+            case 3:
+                anim = "run3";
+                break;
+            case 4:
+                anim = "jump_start";
+                this->nextAnimation("jump_loop");
+                break;
+            case 5:
+                anim = "fall_start";
+                this->nextAnimation("fall_loop");
+                break;
+            }
+            
+            p->m_robotSprite->runAnimation(anim);
+        }
+    }
+    
+    void nextAnimation(const char* animation) {
+        runAction(CCSequence::createWithTwoActions(CCDelayTime::create(0.15f), CCCallFuncO::create(this, callfuncO_selector(ConfirmarCompra::nextAnimation2), CCString::create(animation))));
+    }
+    void nextAnimation2(CCObject* a) {
+        auto anim = reinterpret_cast<CCString*>(a)->getCString();
+        if (itemTipo == Spider) {
+            reinterpret_cast<SimplePlayer*>(m_item)->m_spiderSprite->runAnimation(anim);
+        }
+        else {
+            reinterpret_cast<SimplePlayer*>(m_item)->m_robotSprite->runAnimation(anim);
+        }
     }
     void onBuy(CCObject*) {
         auto gst = GameStatsManager::sharedState();
         if (gst->getStat("14") - price >= 0) {
-            GameManager::sharedState()->unlockIcon(itemID, (IconType)itemTipo);
+            if (itemTipo > 99) {
+                GameManager::sharedState()->unlockColor(itemID, (UnlockType)(itemTipo - 98));
+            }
+            else {
+                GameManager::sharedState()->unlockIcon(itemID, (IconType)itemTipo);
+            }
+
             if (itemTipo > 0) {
                 gst->purchaseItem(2000 + (2000 * itemTipo) + itemID);
             }
@@ -493,6 +699,8 @@ class DailyShop : public CCLayer {
     int limitePage = 0;
     int actualPage = 0;
     CCSprite* loading;
+    bool isReloading = false;
+    float posX = 0;
 
 public:
     bool init() {
@@ -501,7 +709,6 @@ public:
         auto size = CCDirector::sharedDirector()->getWinSize();
 
         this->setKeypadEnabled(true);
-        
 
         auto layer = CCLayer::create();
 
@@ -547,9 +754,11 @@ public:
         orbs->setPosition({ size.width - 15, size.height - 17 });
         layer->addChild(orbs, 1);
 
+        /* for some reason particles can crash
         auto particle = CCParticleSystemQuad::create("keyEffect.plist", false);
+        particle->setScale(.55f);
         particle->setPosition(orbs->getPosition());
-        layer->addChild(particle);
+        layer->addChild(particle);*/
 
         m_moneyLabel = CCLabelBMFont::create(CCString::createWithFormat("%i", GameStatsManager::sharedState()->getStat("14"))->getCString(), "bigFont.fnt");
         m_moneyLabel->setAnchorPoint({ 1, 0.5f });
@@ -607,11 +816,12 @@ public:
         #endif
 
         auto v = geode::Mod::get()->getVersion();
-        FLAlertLayer::create("Info", CCString::createWithFormat("Maybe in futures versions i will add 'death sounds' and 'menu loops', but i dont know\n\n[Mod version]\n<cy>%i.%i.%i - %s</c>", (int)v.getMajor(), (int)v.getPatch(), (int)v.getMinor(), platform)->getCString(), "OK")->show();
+        FLAlertLayer::create("Info", CCString::createWithFormat("Maybe in futures versions i will add 'death sounds' and 'menu loops', but i dont know\n\n[Mod version]\n<cy>%i.%i.%i - %s</c>", (int)v.getMajor(), (int)v.getMinor(), (int)v.getPatch(), platform)->getCString(), "OK")->show();
     }
     void generateItemShop() {
-        std::vector<int> itemsType = {1,2,3,4,5,6,7,8,98,99};
-        
+        std::vector<int> itemsType = {1, 2, 3, 4, 5, 6, 7, 8, 98, 99, 100, 101};
+        std::unordered_set<int> selectedItems;
+
         std::time_t now = std::time(nullptr);
         std::tm* localTime = std::localtime(&now);
 
@@ -620,8 +830,8 @@ public:
 
         itemsString = "";
 
-        for (int i = 0; i < 16; ++i) {
-            ItemType itemType = (ItemType)itemsType[dist2(rng)];
+        while (selectedItems.size() < 20) {
+            ItemType itemType = static_cast<ItemType>(itemsType[dist2(rng)]);
 
             std::uniform_int_distribution<int> dist(0, getMaxIconForType(itemType));
 
@@ -629,7 +839,10 @@ public:
             if (itemID <= 1) itemID = 2;
             if (itemID > getMaxIconForType(itemType)) itemID = getMaxIconForType(itemType);
 
-            itemsString += CCString::createWithFormat("a,%i,%i,%i|", itemID, itemType, getRarity(itemID, itemType))->getCString();
+            if (selectedItems.find(itemID) == selectedItems.end()) {
+                selectedItems.insert(itemID);
+                itemsString += CCString::createWithFormat("a,%i,%i,%i|", itemID, itemType, getRarity(itemID, itemType))->getCString();
+            }
         }
 
         itemsString = itemsString.substr(0, itemsString.size() - 1);
@@ -685,7 +898,13 @@ public:
             ItemType itemTipo = (ItemType)itemInfo->stringAtIndex(2)->intValue();
             int rarity = itemInfo->stringAtIndex(3)->intValue();
             std::string itemNam = CCString::createWithFormat("%s %i", getNameFromItemType(itemTipo), itemID)->getCString();
-            bool comprado = GameManager::sharedState()->isIconUnlocked(itemID, (IconType)itemTipo);
+
+            bool comprado = false;
+            if (itemTipo > 99)
+                comprado = GameManager::sharedState()->isColorUnlocked(itemID, (UnlockType)(itemTipo - 98));
+            else
+                comprado = GameManager::sharedState()->isIconUnlocked(itemID, (IconType)itemTipo);
+
 
             auto bg = CCSprite::create("DS_itemBG.png"_spr);
             bg->setColor(colorFromRarity(rarity));
@@ -732,19 +951,14 @@ public:
             rarityName->setColor(colorFromRarity(rarity));
             moveLayer->addChild(rarityName);
 
-            auto spr = ButtonSprite::create("View", 40, true, "bigFont.fnt", "GJ_button_01.png", 0, 0.8f);
+            auto spr = ButtonSprite::create("View", 50, true, "bigFont.fnt", "GJ_button_01.png", 25, 0.6f);
             if (comprado) spr = ButtonSprite::create("Owned", 50, true, "bigFont.fnt", "GJ_button_04.png", 25, 0.8f);
             spr->setScale(.9f);
-            if (!comprado) {
-                auto buy = CCMenuItemSpriteExtra::create(spr, this, menu_selector(DailyShop::onBuy));
-                buy->setUserObject(CCString::createWithFormat("%s,%i,%i,%i,%i", name->getString(), itemID, rarity, precio_count, itemTipo));
-                buy->setPosition({ bg->getPositionX(), bg->getPositionY() - bg->getContentSize().height / 2 + 23 });
-                menu2->addChild(buy);
-            }
-            else {
-                spr->setPosition({ bg->getPositionX(), bg->getPositionY() - bg->getContentSize().height / 2 + 23 });
-                menu2->addChild(spr);
-            }
+            auto buy = CCMenuItemSpriteExtra::create(spr, this, menu_selector(DailyShop::onBuy));
+            buy->setUserObject(CCString::createWithFormat("%s,%i,%i,%i,%i", name->getString(), itemID, rarity, precio_count, itemTipo));
+            buy->setPosition({ bg->getPositionX(), bg->getPositionY() - bg->getContentSize().height / 2 + 23 });
+            menu2->addChild(buy);
+
             padX += 116;
             if (i % 4 == 0) {
                 veces++;
@@ -759,8 +973,9 @@ public:
 
         this->updatePage();
         this->scheduleUpdate();
+        this->setTouchEnabled(true);
+        this->setTouchMode(ccTouchesMode::kCCTouchesOneByOne);
     }
-    bool isReloading = false;
     void getShop() {
         std::time_t now = std::time(nullptr);
         std::tm midnight = *std::localtime(&now);
@@ -773,6 +988,29 @@ public:
 
         this->generateItemShop();
         this->updateShop();
+    }
+    void ccTouchMoved(CCTouch* touch, CCEvent* event) {
+        if (moveLayer)
+            moveLayer->setPositionX(moveLayer->getPositionX() + touch->getDelta().x);
+    }
+    void ccTouchEnded(CCTouch* touch, CCEvent* event) {
+        if (moveLayer) {
+            auto xSize = CCDirector::sharedDirector()->getWinSize().width;
+
+            auto target_x = -xSize * actualPage;
+	
+	        if (moveLayer->getPositionX() < target_x - xSize / 6) {
+                actualPage += 1;
+                if (actualPage > limitePage) actualPage = limitePage;
+	            updatePage(2);
+            }
+	        else if (moveLayer->getPositionX() > target_x + xSize / 6) {
+                actualPage -= 1;
+                if (actualPage < 0) actualPage = 0;
+	            updatePage(1);
+            }
+            else updatePage();
+        }
     }
     void update(float dt) {
         std::time_t timeLeft = saveTime - time(0);
@@ -860,8 +1098,21 @@ public:
     void onSalir(CCObject*) {
         CCDirector::sharedDirector()->replaceScene(MenuLayer::scene(false));
     }
-    void keyBackClicked() {
-        this->onSalir(nullptr);
+    void keyDown(enumKeyCodes key) {
+        switch (key) {
+            case KEY_Escape:
+            case CONTROLLER_B:
+                this->onSalir(nullptr);
+                break;
+            case KEY_ArrowLeft:
+            case CONTROLLER_Left:
+                this->onBack(nullptr);
+                break;
+            case KEY_ArrowRight:
+            case CONTROLLER_Right:
+                this->onNext(nullptr);
+                break;
+        }
     }
     static CCScene* scene() {
         auto s = CCScene::create();
