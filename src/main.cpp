@@ -252,7 +252,8 @@ CCNode* nodeFromItemType(ItemType tipo, int id) {
             auto _id = CCLabelBMFont::create(CCString::createWithFormat("%i", tipo - 99)->getCString(), "bigFont.fnt");
             _id->setPosition(bg->getContentSize() / 2);
             _id->setScale(.5f);
-            _id->setColor(bg->getColor());
+            if (bg->getColor() != ccColor3B(0,0,0))
+                _id->setColor(bg->getColor());
             bg->addChild(_id);
             return bg;
     }
@@ -386,6 +387,8 @@ class ConfirmarCompra : public FLAlertLayer {
     CCNode* m_item;
     CCMenu* menu;
     CCMenu* menu3;
+    CCLayer* iconsLayer;
+    CCSprite* shadow;
 public:
     bool init() {
         if (!FLAlertLayer::init(150)) return false;
@@ -448,9 +451,60 @@ public:
 
                 menu->addChild(button);
             }
+            menu->setPosition({ menu->getPositionX() - bg->getContentSize().width / 2 + 32, menu->getPositionY() + 22 });
+        }
+        else {
+            if (itemTipo == DeathEffect) {
+                auto spr = CCSprite::createWithSpriteFrameName("GJ_playBtn2_001.png");
+                spr->setScale(.49f);
+                auto spr2 = CCSprite::createWithSpriteFrameName("GJ_stopEditorBtn_001.png");
+                auto button = CCMenuItemToggler::create(spr, spr2, this, menu_selector(ConfirmarCompra::onPreview));
+                menu->addChild(button);
+            }
+            else if (itemTipo == Color1 || itemTipo == Color2) {
+                iconsLayer = CCLayer::create();
+                iconsLayer->setVisible(false);
+
+                auto gm = GameManager::sharedState();
+                float padX = 0, padY = 0, pad = 40;
+                for (int i = 0; i < 9; i++) {
+                    auto player = SimplePlayer::create(0);
+                    player->setScale(.8f);
+                    player->updatePlayerFrame(this->getPlayerIcon(i), (IconType)i);
+                    player->setPosition({ bgI->getPositionX() - (pad * 2) + padX, bgI->getPositionY() + 5 - padY});
+                    player->setColor(itemTipo == Color1 ? gm->colorForIdx(itemID) : gm->colorForIdx(gm->getPlayerColor()));
+                    player->setSecondColor(itemTipo == Color2 ? gm->colorForIdx(itemID) : gm->colorForIdx(gm->getPlayerColor2()));
+                    if (gm->getPlayerGlow())
+                        player->setGlowOutline(itemTipo == Color2 ? gm->colorForIdx(itemID) : gm->colorForIdx(gm->getPlayerColor2()));
+                    
+                    padX += pad;
+                    if ((i + 1) % 5 == 0) {
+                        padX = pad / 2;
+                        padY += 35;
+                    }
+
+                    iconsLayer->addChild(player);
+                }
+                m_mainLayer->addChild(iconsLayer);
+
+                auto spr = CCSprite::create("GJ_button_01.png");
+                auto spr2 = CCSprite::create("GJ_button_02.png");
+
+                auto icon = CCSprite::createWithSpriteFrameName("particle_17_001.png");
+                icon->setPosition(spr->getContentSize() / 2);
+                icon->setScale(1.6f);
+                spr->addChild(icon);
+                spr2->addChild(icon);
+
+                spr->setScale(.9f);
+                spr2->setScale(spr->getScale());
+
+                auto button = CCMenuItemToggler::create(spr, spr2, this, menu_selector(ConfirmarCompra::onPreview));
+                menu->addChild(button);
+            }
+            menu->setPosition({ menu->getPositionX() + bg->getContentSize().width / 2 - 35, menu->getPositionY() - 10 });
         }
 
-        menu->setPosition({ menu->getPositionX() - bg->getContentSize().width / 2 + 32, menu->getPositionY() + 22 });
         menu->setTouchPriority(-504);
         m_mainLayer->addChild(menu);
 
@@ -459,7 +513,7 @@ public:
         m_item->setPosition({ bgI->getPositionX(), bgI->getPositionY() - 10 });
         m_mainLayer->addChild(m_item);
         
-        auto shadow = CCSprite::createWithSpriteFrameName("chest_shadow_001.png");
+        shadow = CCSprite::createWithSpriteFrameName("chest_shadow_001.png");
         shadow->setPosition({ m_item->getPositionX(), m_item->getPositionY() - 20 });
         shadow->setScale(.575f);
         shadow->setOpacity(90);
@@ -517,6 +571,66 @@ public:
         m_mainLayer->addChild(menu3);
         this->addChild(m_mainLayer);
         return true;
+    }
+    int getPlayerIcon(int id) {
+        auto gm = GameManager::sharedState();
+        switch (id) {
+            case 1: return gm->getPlayerShip();
+            case 2: return gm->getPlayerBall();
+            case 3: return gm->getPlayerBird();
+            case 4: return gm->getPlayerDart();
+            case 5: return gm->getPlayerRobot();
+            case 6: return gm->getPlayerSpider();
+            case 7: return gm->getPlayerSwing();
+            case 8: return gm->getPlayerJetpack();
+            default: return gm->getPlayerFrame();
+        }
+    }
+    bool m_preview = false;
+    void onPreview(CCObject*) {
+        if (itemTipo == DeathEffect) {
+            CCSpriteFrameCache::sharedSpriteFrameCache()->addSpriteFramesWithFile(CCString::createWithFormat("PlayerExplosion_%02d.plist", itemID - 1)->getCString(), CCString::createWithFormat("PlayerExplosion_%02d.png", itemID - 1)->getCString());
+            
+            auto spr = reinterpret_cast<CCSprite*>(m_item);
+            if (!m_preview) {
+                auto arr = new CCArray;
+                float spriteSize = 0;
+                for (int i = 1; i < 100; i++) {
+                    auto formato = CCString::createWithFormat("playerExplosion_%02d_%03d.png", itemID - 1, i);
+                    if (auto sprite = CCSprite::createWithSpriteFrameName(formato->getCString())) {
+                        if (spriteSize < sprite->getContentSize().width) spriteSize = sprite->getContentSize().width;
+                    }
+                    else break;
+
+                    arr->addObject(CCSpriteFrameCache::sharedSpriteFrameCache()->spriteFrameByName(formato->getCString()));
+                }
+
+                spr->setScale(75.0f / spriteSize);
+                spr->runAction(CCRepeatForever::create(CCAnimate::create(CCAnimation::createWithSpriteFrames(arr, 0.05))));
+            }
+            else {
+                const char* texture = CCString::createWithFormat("explosionIcon_%02d_001.png", itemID)->getCString();
+                if (CCSprite::createWithSpriteFrameName(texture)) {
+                    spr->stopAllActions();
+                    spr->createWithSpriteFrameName(texture);
+                    spr->initWithSpriteFrameName(texture);
+                    spr->setScale(1.5f);
+                }
+            }
+        }
+        else {
+            if (!m_preview) {
+                m_item->setVisible(false);
+                shadow->setVisible(false);
+                iconsLayer->setVisible(true);
+            }
+            else {
+                m_item->setVisible(true);
+                shadow->setVisible(true);
+                iconsLayer->setVisible(false);
+            }
+        }
+        m_preview = !m_preview;
     }
     CCSprite* getSprite(int id, bool activated) {
         CCSprite* spr;
@@ -751,7 +865,7 @@ public:
 
         auto orbs = CCSprite::createWithSpriteFrameName("currencyOrbIcon_001.png");
         orbs->setScale(.8f);
-        orbs->setPosition({ size.width - 15, size.height - 17 });
+        orbs->setPosition({ size.width - 20, size.height - 17 });
         layer->addChild(orbs, 1);
 
         /* for some reason particles can crash
@@ -771,7 +885,7 @@ public:
         c->setPosition({ m_moneyLabel->getPositionX() - c->getContentSize().width + 24, m_moneyLabel->getPositionY() - a->getContentSize().height / 2 + 8 });
         this->addChild(c);
 
-        timer = CCLabelBMFont::create("00:00:00:00", "chatFont.fnt");
+        timer = CCLabelBMFont::create("00:00:00", "chatFont.fnt");
         timer->setPosition({ size.width / 2, size.height / 2 + 117 });
         timer->setScale(.75f);
         layer->addChild(timer);
@@ -1099,20 +1213,12 @@ public:
         CCDirector::sharedDirector()->replaceScene(MenuLayer::scene(false));
     }
     void keyDown(enumKeyCodes key) {
-        switch (key) {
-            case KEY_Escape:
-            case CONTROLLER_B:
-                this->onSalir(nullptr);
-                break;
-            case KEY_ArrowLeft:
-            case CONTROLLER_Left:
-                this->onBack(nullptr);
-                break;
-            case KEY_ArrowRight:
-            case CONTROLLER_Right:
-                this->onNext(nullptr);
-                break;
-        }
+        if (key == KEY_Escape || key == CONTROLLER_B)
+            this->onSalir(nullptr);
+        if (key == KEY_ArrowLeft || key == CONTROLLER_Left)
+            this->onBack(nullptr);
+        if (key == KEY_ArrowRight || key == CONTROLLER_Right)
+            this->onNext(nullptr);
     }
     static CCScene* scene() {
         auto s = CCScene::create();

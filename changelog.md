@@ -1,3 +1,7 @@
+# v1.2.0
+    - Preview for death effects & colors
+# v1.1.1
+    - Fixed android
 # v1.1.0
     - Fixed duplicate items
     - Colors added (main and secondary)
