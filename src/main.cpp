@@ -379,17 +379,22 @@ public:
     }
 };
 
-class PurchaseAnim : public FLAlertLayer {
+class PurchaseAnim : public CCLayer {
     bool m_canExit = false;
 public:
     bool init(ItemType tipo, int itemID) {
-        if (!FLAlertLayer::init(0)) return false;
-        this->runAction(CCFadeTo::create(1.0f, 150));
-        this->setColor({25, 25, 0});
+        if (!CCLayer::init()) return false;
+
+        auto bgO = CCLayerColor::create({25, 25, 0, 0});
+        bgO->runAction(CCFadeTo::create(1.0f, 150));
+        this->addChild(bgO, -1);
+
+        this->setPreviousPriority(-600);
+        this->setTouchPriority(-600);
 
         this->setID("purchase-animation");
 
-        m_mainLayer = CCLayer::create();
+        auto m_mainLayer = CCLayer::create();
         this->addChild(m_mainLayer);
 
         this->setKeypadEnabled(true);
@@ -479,6 +484,9 @@ public:
 
         return true;
     }
+    void show() {
+        CCScene::get()->addChild(this, CCScene::get()->getHighestChildZ());
+    }
     void enableExit() {
         m_canExit = true;
     }
@@ -488,7 +496,7 @@ public:
     }
     void onClose() {
         if (m_canExit) {
-            this->onBtn1(0);
+            this->removeMeAndCleanup();
         }
     }
     void keyBackClicked() {
@@ -519,6 +527,11 @@ class ConfirmarCompra : public FLAlertLayer {
     CCMenu* menu3;
     CCLayer* iconsLayer;
     CCSprite* shadow;
+    CCSprite* moneyIcon;
+    CCLabelBMFont* priceLabel;
+    CCMenuItemSpriteExtra* buyBtn;
+    CCFloat* posX;
+
 public:
     bool init() {
         if (!FLAlertLayer::init(150)) return false;
@@ -890,7 +903,6 @@ public:
         auto gst = GameStatsManager::sharedState();
         if (gst->getStat("14") - price >= 0) {
             auto anim = PurchaseAnim::create(itemTipo, itemID);
-            anim->m_noElasticity = true;
             anim->show();
 
             if (itemTipo > 99) {
@@ -910,8 +922,13 @@ public:
             m_moneyLabel->setString(CCString::createWithFormat("%i", gst->getStat("14"))->getCString());
             m_moneyLabel->limitLabelWidth(70, .4f, 0);
 
-            saveTime = 0;
-            
+            moneyIcon->createWithSpriteFrameName("GJ_completesIcon_001.png");
+            moneyIcon->initWithSpriteFrameName("GJ_completesIcon_001.png");
+            moneyIcon->setPositionX(posX->getValue());
+
+            priceLabel->setVisible(false);
+
+            buyBtn->setNormalImage(ButtonSprite::create("Owned", 50, true, "bigFont.fnt", "GJ_button_04.png", 25, 0.8f));
             //FMODAudioEngine::sharedEngine()->playEffect("gold02.ogg");
         }
         else
@@ -926,9 +943,13 @@ public:
         //CCDirector::sharedDirector()->getTouchDispatcher()->decrementForcePrio(2);
         this->removeFromParentAndCleanup(true);
     }
-    static ConfirmarCompra* create(CCArray* information) {
+    static ConfirmarCompra* create(CCArray* information, CCSprite* moneyIcon, CCLabelBMFont* priceLabel, CCMenuItemSpriteExtra* buyBtn, CCFloat* posX) {
         auto r = new ConfirmarCompra;
         r->info = information;
+        r->moneyIcon = moneyIcon;
+        r->priceLabel = priceLabel;
+        r->buyBtn = buyBtn;
+        r->posX = posX;
         if (r && r->init()) r->autorelease();
         else CC_SAFE_DELETE(r);
         return r;
@@ -998,6 +1019,12 @@ public:
         infoBtn->setPosition({ 18, size.height - 17 });
         menu->addChild(infoBtn);
 
+        auto info = CCSprite::createWithSpriteFrameName("GJ_infoBtn_001.png");
+        info->setScale(.8f);
+        auto info2Btn = CCMenuItemSpriteExtra::create(info, this, menu_selector(DailyShop::onProbabilidades));
+        info2Btn->setPosition({ size.width - 25, 25 });
+        menu->addChild(info2Btn);
+
         auto orbs = CCSprite::createWithSpriteFrameName("currencyOrbIcon_001.png");
         orbs->setScale(.8f);
         orbs->setPosition({ size.width - 20, size.height - 17 });
@@ -1063,9 +1090,33 @@ public:
         #ifdef GEODE_IS_ANDROID32
             platform = "Android32";
         #endif
-
+        
         auto v = geode::Mod::get()->getVersion();
         FLAlertLayer::create("Info", CCString::createWithFormat("Maybe in futures versions i will add 'death sounds' and 'menu loops', but i dont know\n\n[Mod version]\n<cy>%i.%i.%i - %s</c>", (int)v.getMajor(), (int)v.getMinor(), (int)v.getPatch(), platform)->getCString(), "OK")->show();
+    }
+    void onProbabilidades(CCObject*) {
+        FLAlertLayer::create(nullptr, "Probabilities", CCString::createWithFormat("<cr>[Probabilities of getting the item you want]</c>\n<cg>Cube:</c> %.04f%%\n<cg>Ship:</c> %.04f%%\n<cg>Ball:</c> %.04f%%\n<cg>Ufo:</c> %.04f%%\n<cg>Wave:</c> %.04f%%\n<cg>Robot:</c> %.04f%%\n<cg>Spider:</c> %.04f%%\n<cg>Swing:</c> %.04f%%\n<cg>Jetpack:</c> %.04f%%\n<cg>Special:</c> %.04f%%\n<cg>Death effect:</c> %.04f%%\n<cg>Color 1:</c> %.04f%%\n<cg>Color 2:</c> %.04f%%", getProbabilidad(Cube), getProbabilidad(Ship), getProbabilidad(Ball), getProbabilidad(Ufo), getProbabilidad(Wave), getProbabilidad(Robot), getProbabilidad(Spider), getProbabilidad(Swing), getProbabilidad(Jetpack), getProbabilidad(Special), getProbabilidad(DeathEffect), getProbabilidad(Color1), getProbabilidad(Color2))->getCString(), "OK", nullptr, 400.0f, true, 280.0f, 1.0f)->show();
+    }
+    float getProbabilidad(ItemType tipo) {
+        float probabilidad = 1.0f / getMaxIconForType(tipo);
+        switch (tipo) {
+            case Cube: probabilidad = probabilidad * 0.1f; break;
+            case Ship: probabilidad = probabilidad * 0.06f; break;
+            case Ball: probabilidad = probabilidad * 0.06f; break;
+            case Ufo: probabilidad = probabilidad * 0.06f; break;
+            case Wave: probabilidad = probabilidad * 0.06f; break;
+            case Robot: probabilidad = probabilidad * 0.06f; break;
+            case Spider: probabilidad = probabilidad * 0.06f; break;
+            case Swing: probabilidad = probabilidad * 0.06f; break;
+            case Jetpack: probabilidad = probabilidad * 0.025f; break;
+            case Special: probabilidad = probabilidad * 0.04f; break;
+            case DeathEffect: probabilidad = probabilidad * 0.05f; break;
+            case Color1: probabilidad = probabilidad * 0.1f; break;
+            case Color2: probabilidad = probabilidad * 0.1f; break;
+        }
+
+        probabilidad = probabilidad * 35;
+        return probabilidad;
     }
     void generateItemShop() {
         std::vector<std::pair<int, double>> itemsProbabilities = {
@@ -1204,13 +1255,15 @@ public:
             }
             else {
                 orbs->setPosition({ bg->getPositionX() - bg->getScaledContentSize().width / 2 + 15 , bg->getPositionY() + bg->getScaledContentSize().height / 2 - 15 });
-
-                auto precio = CCLabelBMFont::create(CCString::createWithFormat("%i", precio_count)->getCString(), "bigFont.fnt");
-                precio->setAnchorPoint({ 0, 0.5f });
-                precio->limitLabelWidth(100, .4f, 0);
-                precio->setPosition({ orbs->getPositionX() + 12, orbs->getPositionY() + 1 });
-                moveLayer->addChild(precio);
             }
+
+            auto precio = CCLabelBMFont::create(CCString::createWithFormat("%i", precio_count)->getCString(), "bigFont.fnt");
+            precio->setAnchorPoint({ 0, 0.5f });
+            precio->limitLabelWidth(100, .4f, 0);
+            precio->setPosition({ orbs->getPositionX() + 12, orbs->getPositionY() + 1 });
+            precio->setVisible(!comprado);
+            moveLayer->addChild(precio);
+
             orbs->setScale(.8f);
             moveLayer->addChild(orbs);
 
@@ -1240,7 +1293,15 @@ public:
             if (comprado) spr = ButtonSprite::create("Owned", 50, true, "bigFont.fnt", "GJ_button_04.png", 25, 0.8f);
             spr->setScale(.9f);
             auto buy = CCMenuItemSpriteExtra::create(spr, this, menu_selector(DailyShop::onBuy));
-            buy->setUserObject(CCString::createWithFormat("%s,%i,%i,%i,%i", name->getString(), itemID, rarity, precio_count, itemTipo));
+            auto _array = CCArray::create();
+            _array->retain();
+            _array->addObject(CCString::createWithFormat("%s,%i,%i,%i,%i", name->getString(), itemID, rarity, precio_count, itemTipo));
+            _array->addObject(orbs);
+            _array->addObject(precio);
+            _array->addObject(buy);
+            _array->addObject(CCFloat::create(bg->getPositionX() + bg->getScaledContentSize().width / 2 - 18));
+
+            buy->setUserObject(_array);
             buy->setPosition({ bg->getPositionX(), bg->getPositionY() - bg->getScaledContentSize().height / 2 + 23 });
             menu2->addChild(buy);
 
@@ -1378,8 +1439,15 @@ public:
         isReloading = false;
     }
     void onBuy(CCObject* s) {
-        auto arr = splitToCCArray(reinterpret_cast<CCString*>(reinterpret_cast<CCMenuItemSpriteExtra*>(s)->getUserObject())->getCString(), ',');
-        ConfirmarCompra::create(arr)->show();
+        auto arr = reinterpret_cast<CCArray*>(reinterpret_cast<CCMenuItemSpriteExtra*>(s)->getUserObject());
+
+        auto info = splitToCCArray(arr->stringAtIndex(0)->getCString(), ',');
+        auto spr = reinterpret_cast<CCSprite*>(arr->stringAtIndex(1));
+        auto label = reinterpret_cast<CCLabelBMFont*>(arr->stringAtIndex(2));
+        auto btn = reinterpret_cast<CCMenuItemSpriteExtra*>(arr->stringAtIndex(3));
+        auto posX = reinterpret_cast<CCFloat*>(arr->stringAtIndex(4));
+        
+        ConfirmarCompra::create(info, spr, label, btn, posX)->show();
     }
     void onSalir(CCObject*) {
         CCDirector::sharedDirector()->replaceScene(MenuLayer::scene(false));
