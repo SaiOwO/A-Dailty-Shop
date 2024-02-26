@@ -118,7 +118,8 @@ void defineIconsRarity() {
         auto s = GameStatsManager::sharedState();
 
         for (int i = 5; i <= getMaxIconForType(Cube); i++) {
-            if (i > 4 && i <= 142) m_cubesRarity->setObject(CCString::create("0"), i);
+            if (i == 13 || i >= 47 && i <= 48 || i >= 65 && i <= 72 || i == 75 || i >= 143 && i <= 150 || i == 483) m_cubesRarity->setObject(CCString::create("4"), i);
+            else if (i > 4 && i <= 142) m_cubesRarity->setObject(CCString::create("0"), i);
             else if (i > 142) m_cubesRarity->setObject(CCString::create("2"), i);
             else m_cubesRarity->setObject(CCString::create("1"), i);
 
@@ -126,6 +127,7 @@ void defineIconsRarity() {
         }
         for (int i = 2; i <= getMaxIconForType(Ship); i++) {
             if (i > 1 && i <= 21) m_shipsRarity->setObject(CCString::create("0"), i);
+            else if (i == 50) m_cubesRarity->setObject(CCString::create("4"), i);
             else if (i > 51) m_shipsRarity->setObject(CCString::create("2"), i);
             else m_shipsRarity->setObject(CCString::create("1"), i);
 
@@ -133,6 +135,7 @@ void defineIconsRarity() {
         }
         for (int i = 2; i <= getMaxIconForType(Ball); i++) {
             if (i > 1 && i <= 22) m_ballsRarity->setObject(CCString::create("0"), i);
+            else if (i == 42) m_cubesRarity->setObject(CCString::create("4"), i);
             else if (i > 43) m_ballsRarity->setObject(CCString::create("2"), i);
             else m_ballsRarity->setObject(CCString::create("1"), i);
 
@@ -376,6 +379,133 @@ public:
     }
 };
 
+class PurchaseAnim : public FLAlertLayer {
+    bool m_canExit = false;
+public:
+    bool init(ItemType tipo, int itemID) {
+        if (!FLAlertLayer::init(0)) return false;
+        this->runAction(CCFadeTo::create(1.0f, 150));
+        this->setColor({25, 25, 0});
+
+        this->setID("purchase-animation");
+
+        m_mainLayer = CCLayer::create();
+        this->addChild(m_mainLayer);
+
+        this->setKeypadEnabled(true);
+        this->setTouchEnabled(true);
+
+        FMODAudioEngine::sharedEngine()->playEffect("buyItem.ogg"_spr);
+
+        auto s = CCDirector::sharedDirector()->getWinSize();
+
+        auto glow = CCSprite::create("Glow.png"_spr);
+        glow->setOpacity(0);
+        glow->setColor({255, 255, 0});
+        glow->setPosition(s / 2);
+        glow->setScale(5);
+        glow->runAction(CCEaseInOut::create(CCScaleTo::create(1.7f, 10), 2.0f));
+        glow->runAction(CCRepeatForever::create(CCSequence::createWithTwoActions(CCEaseInOut::create(CCFadeTo::create(2, 100), 2.0f), CCEaseInOut::create(CCFadeTo::create(3, 150), 2.0f))));
+        m_mainLayer->addChild(glow);
+
+        auto glow2 = CCSprite::create("Glow.png"_spr);
+        glow2->setColor({255, 255, 0});
+        glow2->setOpacity(0);
+        glow2->setPosition(s / 2);
+        glow2->setScale(5);
+        glow2->runAction(CCRepeatForever::create(CCSequence::createWithTwoActions(CCEaseInOut::create(CCFadeTo::create(1.7f, 150), 2.0f), CCEaseInOut::create(CCFadeTo::create(1.7f, 175), 2.0f))));
+        glow2->runAction(CCRepeatForever::create(CCSequence::createWithTwoActions(CCEaseInOut::create(CCScaleTo::create(2.7f, 7), 2.0f), CCEaseInOut::create(CCScaleTo::create(2.7f, 3), 2.0f))));
+        m_mainLayer->addChild(glow2);
+
+        auto shineRotate = CCSprite::create("Shine.png"_spr);
+        shineRotate->setColor({255, 255, 0});
+        shineRotate->setOpacity(20);
+        shineRotate->setPosition(s / 2);
+        shineRotate->runAction(CCRepeatForever::create(CCRotateBy::create(8.0f, 360)));
+        shineRotate->runAction(CCRepeatForever::create(CCSequence::createWithTwoActions(CCEaseInOut::create(CCScaleTo::create(2, 11), 2.0f), CCEaseInOut::create(CCScaleTo::create(2, 7), 2.0f))));
+        m_mainLayer->addChild(shineRotate);
+
+        auto title = CCLabelBMFont::create("You recived a new item!", "goldFont.fnt");
+        title->setScale(.9f);
+        title->setOpacity(0);
+        title->setPosition({ s.width / 2, s.height / 2 + 100 });
+        m_mainLayer->addChild(title);
+        title->runAction(CCSequence::createWithTwoActions(CCDelayTime::create(2.6f), CCFadeIn::create(1.5f)));
+
+        auto name = CCLabelBMFont::create(CCString::createWithFormat("%s %i", getNameFromItemType(tipo), itemID)->getCString(), "bigFont.fnt");
+        name->setScale(.65f);
+        name->setOpacity(0);
+        name->setPosition({ s.width / 2, s.height / 2 + 70 });
+        m_mainLayer->addChild(name);
+        name->runAction(CCSequence::createWithTwoActions(CCDelayTime::create(2.6f), CCFadeIn::create(1.5f)));
+
+        auto sub = CCLabelBMFont::create("Tap to continue", "chatFont.fnt");
+        #ifdef GEODE_IS_WINDOWS
+        sub->setString("Click to continue");
+        #endif
+        sub->setScale(.8f);
+        sub->setOpacity(0);
+        sub->setPosition({ s.width / 2, 30 });
+        m_mainLayer->addChild(sub);
+        sub->runAction(CCSequence::createWithTwoActions(CCDelayTime::create(2.6f), CCFadeIn::create(1.5f)));
+
+        auto iconBG = CCSprite::create("SquareGlow.png"_spr);
+        iconBG->setPosition(s / 2);
+        auto icon = nodeFromItemType(tipo, itemID);
+        icon->setScale(0.35f);
+        icon->setPosition(iconBG->getScaledContentSize() / 2);
+        iconBG->addChild(icon);
+        iconBG->setScale(5);
+        m_mainLayer->addChild(iconBG);
+        iconBG->setVisible(false);
+
+        auto shine = CCSprite::create("MegaShine.png"_spr);
+        shine->setScale(0);
+        shine->setPosition(s / 2);
+        m_mainLayer->addChild(shine);
+
+        shine->runAction(CCEaseIn::create(CCRotateBy::create(4.0f, 1000), 1.0f));
+        shine->runAction(CCEaseOut::create(CCScaleTo::create(3.0f, 15), 2.0f));
+        shine->runAction(CCSequence::createWithTwoActions(CCDelayTime::create(1.78f), CCScaleTo::create(2.0f, 1)));
+        shine->runAction(CCSequence::createWithTwoActions(CCDelayTime::create(1.78f), CCFadeOut::create(1.0f)));
+
+        iconBG->runAction(CCSequence::createWithTwoActions(CCDelayTime::create(1.78f), CCToggleVisibility::create()));
+        iconBG->runAction(CCSequence::createWithTwoActions(CCDelayTime::create(1.77f), CCEaseInOut::create(CCScaleTo::create(1.8f, 4), 2.0f)));
+        iconBG->runAction(CCRepeatForever::create(CCSequence::createWithTwoActions(CCEaseInOut::create(CCMoveBy::create(1.8f, {0, 4}), 2.0f), CCEaseInOut::create(CCMoveBy::create(1.8f, {0, -4}), 2.0f))));
+
+        this->runAction(CCSequence::createWithTwoActions(CCDelayTime::create(1.78f), CCCallFunc::create(this, callfunc_selector(PurchaseAnim::enableExit))));
+
+        this->setTouchMode(ccTouchesMode::kCCTouchesOneByOne);
+
+        return true;
+    }
+    void enableExit() {
+        m_canExit = true;
+    }
+    bool ccTouchBegan(CCTouch* touch, CCEvent* event) {
+        this->onClose();
+        return true;
+    }
+    void onClose() {
+        if (m_canExit) {
+            this->onBtn1(0);
+        }
+    }
+    void keyBackClicked() {
+        this->onClose();
+    }
+    void keyDown(enumKeyCodes key) {
+        if (key == KEY_Escape) this->onClose();
+    }
+    static PurchaseAnim* create(ItemType tipo, int itemID) {
+        auto r = new PurchaseAnim;
+        if (r && r->init(tipo, itemID)) r->autorelease();
+        else CC_SAFE_DELETE(r);
+        return r;
+    }
+};
+
+
 CCLabelBMFont* m_moneyLabel;
 int saveTime = 0;
 
@@ -455,6 +585,8 @@ public:
         }
         else {
             if (itemTipo == DeathEffect) {
+                CCSpriteFrameCache::sharedSpriteFrameCache()->addSpriteFramesWithFile(CCString::createWithFormat("PlayerExplosion_%02d.plist", itemID - 1)->getCString(), CCString::createWithFormat("PlayerExplosion_%02d.png", itemID - 1)->getCString());
+
                 auto spr = CCSprite::createWithSpriteFrameName("GJ_playBtn2_001.png");
                 spr->setScale(.49f);
                 auto spr2 = CCSprite::createWithSpriteFrameName("GJ_stopEditorBtn_001.png");
@@ -588,9 +720,7 @@ public:
     }
     bool m_preview = false;
     void onPreview(CCObject*) {
-        if (itemTipo == DeathEffect) {
-            CCSpriteFrameCache::sharedSpriteFrameCache()->addSpriteFramesWithFile(CCString::createWithFormat("PlayerExplosion_%02d.plist", itemID - 1)->getCString(), CCString::createWithFormat("PlayerExplosion_%02d.png", itemID - 1)->getCString());
-            
+        if (itemTipo == DeathEffect) {            
             auto spr = reinterpret_cast<CCSprite*>(m_item);
             if (!m_preview) {
                 auto arr = new CCArray;
@@ -759,6 +889,10 @@ public:
     void onBuy(CCObject*) {
         auto gst = GameStatsManager::sharedState();
         if (gst->getStat("14") - price >= 0) {
+            auto anim = PurchaseAnim::create(itemTipo, itemID);
+            anim->m_noElasticity = true;
+            anim->show();
+
             if (itemTipo > 99) {
                 GameManager::sharedState()->unlockColor(itemID, (UnlockType)(itemTipo - 98));
             }
@@ -778,7 +912,7 @@ public:
 
             saveTime = 0;
             
-            FMODAudioEngine::sharedEngine()->playEffect("gold02.ogg");
+            //FMODAudioEngine::sharedEngine()->playEffect("gold02.ogg");
         }
         else
             FLAlertLayer::create("Error", "You dont have sufficient <cl>mana orbs</c>", "OK")->show();
@@ -800,6 +934,7 @@ public:
         return r;
     }
 };
+
 
 
 std::string itemsString = "";
@@ -933,19 +1068,50 @@ public:
         FLAlertLayer::create("Info", CCString::createWithFormat("Maybe in futures versions i will add 'death sounds' and 'menu loops', but i dont know\n\n[Mod version]\n<cy>%i.%i.%i - %s</c>", (int)v.getMajor(), (int)v.getMinor(), (int)v.getPatch(), platform)->getCString(), "OK")->show();
     }
     void generateItemShop() {
-        std::vector<int> itemsType = {1, 2, 3, 4, 5, 6, 7, 8, 98, 99, 100, 101};
+        std::vector<std::pair<int, double>> itemsProbabilities = {
+            {0, 0.1}, // cube
+            {1, 0.06}, // ship
+            {2, 0.06}, // ball
+            {3, 0.06}, // ufo
+            {4, 0.06}, // wave
+            {5, 0.06}, // robot
+            {6, 0.06}, // spider
+            {7, 0.06}, // swing
+            {8, 0.025}, // jetpack
+            {98, 0.04}, // special
+            {99, 0.05}, // death effect
+            {100, 0.1}, // color 1
+            {101, 0.1} // color 2
+        };
+
         std::unordered_set<int> selectedItems;
 
         std::time_t now = std::time(nullptr);
         std::tm* localTime = std::localtime(&now);
 
         std::mt19937 rng(((31 * localTime->tm_mday) * localTime->tm_mon) * localTime->tm_year);
-        std::uniform_int_distribution<int> dist2(0, itemsType.size() - 1);
+    
+        std::vector<double> cumulativeProbabilities;
+        double cumulativeProbability = 0.0;
+        for (const auto& item : itemsProbabilities) {
+            cumulativeProbability += item.second;
+            cumulativeProbabilities.push_back(cumulativeProbability);
+        }
 
         itemsString = "";
 
-        while (selectedItems.size() < 20) {
-            ItemType itemType = static_cast<ItemType>(itemsType[dist2(rng)]);
+        while (selectedItems.size() < 35) {
+            double randomValue = std::generate_canonical<double, 10>(rng);
+
+            int selectedIndex = 0;
+            for (size_t i = 0; i < cumulativeProbabilities.size(); ++i) {
+                if (randomValue < cumulativeProbabilities[i]) {
+                    selectedIndex = i;
+                    break;
+                }
+            }
+
+            ItemType itemType = static_cast<ItemType>(itemsProbabilities[selectedIndex].first);
 
             std::uniform_int_distribution<int> dist(0, getMaxIconForType(itemType));
 
@@ -961,13 +1127,17 @@ public:
 
         itemsString = itemsString.substr(0, itemsString.size() - 1);
     }
+
     void removeMoveLayer() {
         if (moveLayer) {
             auto scene = CCDirector::sharedDirector()->getRunningScene();
 
             if (scene->getChildrenCount() > 1)
                 for (int i = 1; i < scene->getChildrenCount(); i++) {
-                    reinterpret_cast<ConfirmarCompra*>(scene->getChildren()->objectAtIndex(i))->onClose(nullptr);
+                    
+                    if (auto layer = reinterpret_cast<ConfirmarCompra*>(scene->getChildren()->objectAtIndex(i)))
+                        if (layer->getID() != "purchase-animation")
+                            layer->onClose(nullptr);
                 }
 
             moveLayer->stopAllActions();
@@ -1022,17 +1192,18 @@ public:
 
             auto bg = CCSprite::create("DS_itemBG.png"_spr);
             bg->setColor(colorFromRarity(rarity));
-            bg->setPosition({ size.width / 2 - 175 + padX, size.height / 2 });
+            bg->setScaleX(.8f);
+            bg->setPosition({ size.width / 2 - 180 + padX, size.height / 2 });
             moveLayer->addChild(bg, -1);
 
             int precio_count = priceFromRarity(rarity);
             auto orbs = CCSprite::createWithSpriteFrameName("currencyOrbIcon_001.png");
             if (comprado) {
                 orbs = CCSprite::createWithSpriteFrameName("GJ_completesIcon_001.png");
-                orbs->setPosition({ bg->getPositionX() + bg->getContentSize().width / 2 - 18 , bg->getPositionY() + bg->getContentSize().height / 2 - 15 });
+                orbs->setPosition({ bg->getPositionX() + bg->getScaledContentSize().width / 2 - 18 , bg->getPositionY() + bg->getScaledContentSize().height / 2 - 15 });
             }
             else {
-                orbs->setPosition({ bg->getPositionX() - bg->getContentSize().width / 2 + 15 , bg->getPositionY() + bg->getContentSize().height / 2 - 15 });
+                orbs->setPosition({ bg->getPositionX() - bg->getScaledContentSize().width / 2 + 15 , bg->getPositionY() + bg->getScaledContentSize().height / 2 - 15 });
 
                 auto precio = CCLabelBMFont::create(CCString::createWithFormat("%i", precio_count)->getCString(), "bigFont.fnt");
                 precio->setAnchorPoint({ 0, 0.5f });
@@ -1050,17 +1221,17 @@ public:
 
             auto shadow = CCSprite::createWithSpriteFrameName("chest_shadow_001.png");
             shadow->setPosition({ item->getPositionX(), item->getPositionY() - 22 });
-            shadow->setScale(.675f);
+            shadow->setScale(.65f);
             shadow->setOpacity(90);
             moveLayer->addChild(shadow, -1);
 
             auto name = CCLabelBMFont::create(itemNam.c_str(), "chatFont.fnt");
-            name->limitLabelWidth(bg->getContentSize().width - 20, 1, 0);
+            name->limitLabelWidth(bg->getScaledContentSize().width - 20, 1, 0);
             name->setPosition({ bg->getPositionX(), bg->getPositionY() - bg->getContentSize().height / 2 + 75 });
             moveLayer->addChild(name);
 
             auto rarityName = CCLabelBMFont::create(nameFromRarity(rarity), "chatFont.fnt");
-            rarityName->limitLabelWidth(bg->getContentSize().width - 10, 1, 0);
+            rarityName->limitLabelWidth(bg->getScaledContentSize().width - 10, 1, 0);
             rarityName->setPosition({ bg->getPositionX(), bg->getPositionY() - bg->getContentSize().height / 2 + 54 });
             rarityName->setColor(colorFromRarity(rarity));
             moveLayer->addChild(rarityName);
@@ -1070,11 +1241,11 @@ public:
             spr->setScale(.9f);
             auto buy = CCMenuItemSpriteExtra::create(spr, this, menu_selector(DailyShop::onBuy));
             buy->setUserObject(CCString::createWithFormat("%s,%i,%i,%i,%i", name->getString(), itemID, rarity, precio_count, itemTipo));
-            buy->setPosition({ bg->getPositionX(), bg->getPositionY() - bg->getContentSize().height / 2 + 23 });
+            buy->setPosition({ bg->getPositionX(), bg->getPositionY() - bg->getScaledContentSize().height / 2 + 23 });
             menu2->addChild(buy);
 
-            padX += 116;
-            if (i % 4 == 0) {
+            padX += 90;
+            if (i % 5 == 0) {
                 veces++;
                 padX = size.width * veces;
             }
@@ -1148,7 +1319,7 @@ public:
         }
     }
     void onNext(CCObject* a) {
-        if (limite > 4) {
+        if (limite > 5) {
             actualPage++;
             if (actualPage > limitePage) actualPage = limitePage;
 
@@ -1156,7 +1327,7 @@ public:
         }
     }
     void onBack(CCObject*) {
-        if (limite > 4) {
+        if (limite > 5) {
             actualPage--;
             if (actualPage < 0) actualPage = 0;
 
@@ -1172,7 +1343,7 @@ public:
 
         limitePage = 0;
         for (int i = 1; i < limite; i++) {
-            if (i % 4 == 0) limitePage++;
+            if (i % 5 == 0) limitePage++;
         }
 
         if (limitePage > 0) { // later i will fix that
@@ -1180,6 +1351,7 @@ public:
                 arrow2->stopActionByTag(6);
             if (_tipo == 2)
                 arrow->stopActionByTag(6);
+
 
             if (actualPage == 0) {
                 runActionWithTag(arrow2, CCEaseElasticOut::create(CCMoveTo::create(1.0f, { -30, size.height / 2 }), 1.8f), 6);
@@ -1196,7 +1368,7 @@ public:
 
             if (moveLayer) {
                 moveLayer->stopActionByTag(7);
-                runActionWithTag(moveLayer, CCEaseElasticOut::create(CCMoveTo::create(1.0f, { 0 - size.width * actualPage, 0 }), 1.8f), 7);
+                runActionWithTag(moveLayer, CCEaseElasticOut::create(CCMoveTo::create(0.7f, { 0 - size.width * actualPage, 0 }), 1.8f), 7);
             }
         }
         else {
