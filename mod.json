@@ -6,6 +6,7 @@
 	},
 	"version": "v1.3.1",
 	"id": "elsai.a_daily_shop",
+	"repository": "https://github.com/SaiOwO/A-Dailty-Shop",
 	"name": "A daily shop",
 	"developer": "elSai",
 	"description": "New shop is added that changes daily",
